@@ -14,6 +14,7 @@ type ServiceConfig struct {
 	JWT      jwtConfig       `mapstructure:"jwt"`
 	Zarinpal zarinpal        `mapstructure:"zarinpal"`
 	Yektanet yekranet        `mapstructure:"yektanet"`
+	Prompt   prompt          `mapstructure:"prompt"`
 }
 
 type systemConfig struct {
@@ -118,6 +119,14 @@ type yektanetDivarConfig struct {
 	RedirectUrl  string `mapstructure:"redirect_url"`
 	ClientID     string `mapstructure:"client_id"`
 	ResponseType string `mapstructure:"response_type"`
+}
+
+type prompt struct {
+	ApiKey     string `mapstructure:"api_key"`
+	Url        string `mapstructure:"url"`
+	Role       string `mapstructure:"role"`
+	Message    string `mapstructure:"message"`
+	OutputPath string `mapstructure:"output_path"`
 }
 
 func (c *ServiceConfig) GetDivarConfig(service string) divar {

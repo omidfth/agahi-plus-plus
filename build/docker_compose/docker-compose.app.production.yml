@@ -1,0 +1,20 @@
+version: '3'
+services:
+  app-api:
+    image: ${API_IMG}
+    restart: always
+    container_name: app-api
+    ports:
+      - "8001:8000"
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - kd_network
+    volumes:
+      - /home/ubuntu/docker-files/app-logs:/app/logs
+      - /home/ubuntu/docker-files/app-config.yml:/app/config.yml
+      - /var/www/html/app-content:/app/imgs
+networks:
+  kd_network:
+    external: false

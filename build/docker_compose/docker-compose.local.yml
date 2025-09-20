@@ -3,9 +3,9 @@ services:
     image: postgres:latest
     container_name: ap_db
     environment:
-      POSTGRES_USER: hosein
-      POSTGRES_PASSWORD: hosein121
-      POSTGRES_DB: chera-khube
+      POSTGRES_USER: omid
+      POSTGRES_PASSWORD: omid121
+      POSTGRES_DB: app-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

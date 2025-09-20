@@ -2,7 +2,7 @@ package model
 
 import "gorm.io/gorm"
 
-type PricingLogic struct {
+type Plan struct {
 	gorm.Model
 	ServiceID            uint   `json:"-"`
 	Title                string `json:"title"`

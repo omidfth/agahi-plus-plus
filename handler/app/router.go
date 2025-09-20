@@ -29,11 +29,14 @@ func (a *application) InitRouter(ctrl *controller, logger *zap.Logger) *gin.Engi
 	postR := router.NewPostRouter(ctrl.postController)
 	postR.HandleRoutes(r, a.config)
 
-	pricingR := router.NewPricingRouter(ctrl.pricingController)
-	pricingR.HandleRoutes(r, a.config)
+	planR := router.NewPlanRouter(ctrl.planController)
+	planR.HandleRoutes(r, a.config)
 
 	divarR := router.NewDivarRouter(ctrl.divarController)
 	divarR.HandleRoutes(r, a.config)
+
+	promptR := router.NewPromptRouter(ctrl.promptController)
+	promptR.HandleRoutes(r, a.config)
 
 	return r
 }

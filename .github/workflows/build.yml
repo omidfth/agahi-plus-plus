@@ -41,7 +41,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-          scp -o StrictHostKeyChecking=no build/docker_compose/docker-compose.production.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/ubuntu/project
+          scp -o StrictHostKeyChecking=no build/docker_compose/docker-compose.app.production.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/ubuntu/project
 
       - name: SSH and run Docker Compose
         env:
@@ -50,7 +50,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh -o StrictHostKeyChecking=no  ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "export API_IMG=${{ secrets.CI_REGISTRY }}/app-api:${{ github.sha }} && export DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }} && export DB_NAME=${{ secrets.DB_NAME }} && export DB_USER=${{ secrets.DB_USER }} && export DB_PASSWORD=${{ secrets.DB_PASSWORD }} && docker login -u ${{ secrets.CI_REGISTRY_USER }} -p ${{ secrets.CI_REGISTRY_PASSWORD }} ${{ secrets.CI_REGISTRY }} && cd /home/ubuntu/project && docker compose -f docker-compose.production.yml up -d"
+          ssh -o StrictHostKeyChecking=no  ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "export API_IMG=${{ secrets.CI_REGISTRY }}/app-api:${{ github.sha }} && export DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }} && export DB_NAME=${{ secrets.DB_NAME }} && export DB_USER=${{ secrets.DB_USER }} && export DB_PASSWORD=${{ secrets.DB_PASSWORD }} && docker login -u ${{ secrets.CI_REGISTRY_USER }} -p ${{ secrets.CI_REGISTRY_PASSWORD }} ${{ secrets.CI_REGISTRY }} && cd /home/ubuntu/project && docker compose -f docker-compose.app.production.yml up -d"
 
       - name: Set Output Deploy Section
         id: output-deploy

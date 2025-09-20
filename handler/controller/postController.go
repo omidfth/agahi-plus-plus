@@ -18,14 +18,15 @@ type postController struct {
 }
 
 func (c postController) Get(ctx *gin.Context) {
-	//post, addons, balance, err := c.postService.GetPostByUser(ctx)
-	//if err != nil {
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//	ctx.Abort()
-	//	return
-	//}
+	serviceName := ctx.Query("service")
+	post, balance, err := c.postService.GetPostByUser(ctx, serviceName)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
+	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
+	ctx.JSON(http.StatusOK, gin.H{"status": "ok", "post": post, "balance": balance})
 }
 
 func NewPostController(

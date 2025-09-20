@@ -22,7 +22,7 @@ type zarinpalService struct {
 	api                repository.ZarinpalRepository
 	userPaymentService UserPaymentService
 	userService        UserService
-	pricingService     PricingService
+	planService        PlanService
 	config             *helper.ServiceConfig
 	logger             *zap.Logger
 }
@@ -31,7 +31,7 @@ func NewZarinpalService(
 	api repository.ZarinpalRepository,
 	userPaymentService UserPaymentService,
 	userService UserService,
-	pricingService PricingService,
+	planService PlanService,
 	config *helper.ServiceConfig,
 	logger *zap.Logger,
 ) ZarinpalService {
@@ -39,7 +39,7 @@ func NewZarinpalService(
 		api:                api,
 		userPaymentService: userPaymentService,
 		userService:        userService,
-		pricingService:     pricingService,
+		planService:        planService,
 		config:             config,
 		logger:             logger,
 	}
@@ -51,7 +51,7 @@ func (s *zarinpalService) NewPaymentRequest(ctx *gin.Context, planID int, servic
 		return nil, err
 	}
 
-	price, err := s.pricingService.Get(planID)
+	price, err := s.planService.Get(planID)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (s *zarinpalService) PaymentVerification(ctx *gin.Context, d dto.PaymentVer
 		return nil, err
 	}
 
-	price, err := s.pricingService.Get(planID)
+	price, err := s.planService.Get(planID)
 	if err != nil {
 		return nil, err
 	}

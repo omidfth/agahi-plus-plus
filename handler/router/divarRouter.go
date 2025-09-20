@@ -2,6 +2,7 @@ package router
 
 import (
 	"agahi-plus-plus/handler/controller"
+	middlewares "agahi-plus-plus/handler/middleware"
 	"agahi-plus-plus/internal/helper"
 	"github.com/gin-gonic/gin"
 )
@@ -15,5 +16,6 @@ func NewDivarRouter(divarController controller.DivarController) Router {
 }
 
 func (r divarRouter) HandleRoutes(router *gin.Engine, config *helper.ServiceConfig) {
-	//user := router.Group("v1").Group("divar")
+	divar := router.Group("v1").Group("divar")
+	divar.POST("edit/:service", middlewares.Jwt(config), r.divarController.EditPost)
 }

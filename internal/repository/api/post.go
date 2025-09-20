@@ -75,19 +75,20 @@ type getPostResponse struct {
 }
 
 type postData struct {
-	Title  string   `json:"title"`
-	Images []string `json:"images"`
+	Title       string   `json:"title"`
+	Images      []string `json:"images"`
+	Description string   `json:"description"`
 }
 
 func (r getPostResponse) toPostModel() (*model.Post, error) {
-	title := r.Data.Title
 
-	jd, _ := postgres.MakeJsonb(r.Data.Images)
+	jd, err := postgres.MakeJsonb(r.Data.Images)
 
 	return &model.Post{
 		Token:       r.Token,
 		IsConnected: false,
-		Title:       title,
+		Title:       r.Data.Title,
 		Images:      jd,
-	}, nil
+		Description: r.Data.Description,
+	}, err
 }

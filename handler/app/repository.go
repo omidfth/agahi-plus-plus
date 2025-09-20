@@ -14,7 +14,7 @@ type repository struct {
 	userPaymentRepository bRepository.UserPaymentRepository
 	postApiRepository     bRepository.PostApiRepo
 	postDBRepository      bRepository.PostDbRepo
-	pricingRepository     bRepository.PricingRepository
+	planRepository        bRepository.PlanRepository
 	divarRepository       bRepository.DivarRepository
 	promptRepository      bRepository.PromptRepository
 	profileRepository     bRepository.ProfileRepository
@@ -29,7 +29,7 @@ func (a *application) InitRepository(logger *zap.Logger) *repository {
 	repo.zarinpalApiRepository = api.NewZarinpal(a.config.Zarinpal.MerchantID, a.config.Zarinpal.Sandbox)
 	repo.userPaymentRepository = db.NewUserPaymentRepository(a.db, logger)
 	repo.postDBRepository = db.NewPostDb(a.db, logger)
-	repo.pricingRepository = db.NewPricingDB(a.db, logger)
+	repo.planRepository = db.NewPlanDB(a.db, logger)
 	repo.divarRepository = api.NewDivarApi(a.config, logger)
 	repo.promptRepository = api.NewPromptApi(logger, a.config)
 	repo.profileRepository = db.NewProfileDB(a.db, logger)

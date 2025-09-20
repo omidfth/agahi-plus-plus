@@ -9,20 +9,20 @@ import (
 	"strconv"
 )
 
-type PricingController interface {
+type PlanController interface {
 	List(ctx *gin.Context)
 }
-type pricingController struct {
-	pricingService service.PricingService
-	config         *helper.ServiceConfig
-	logger         *zap.Logger
+type planController struct {
+	planService service.PlanService
+	config      *helper.ServiceConfig
+	logger      *zap.Logger
 }
 
-func (c pricingController) List(ctx *gin.Context) {
+func (c planController) List(ctx *gin.Context) {
 	serviceString := ctx.Query("service_id")
 	serviceID, _ := strconv.Atoi(serviceString)
 
-	post, err := c.pricingService.List(ctx, uint(serviceID))
+	post, err := c.planService.List(ctx, uint(serviceID))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		ctx.Abort()
@@ -32,14 +32,14 @@ func (c pricingController) List(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "ok", "data": post})
 }
 
-func NewPricingController(
-	pricingService service.PricingService,
+func NewPlanController(
+	planService service.PlanService,
 	config *helper.ServiceConfig,
 	logger *zap.Logger,
-) PricingController {
-	return &pricingController{
-		pricingService: pricingService,
-		config:         config,
-		logger:         logger,
+) PlanController {
+	return &planController{
+		planService: planService,
+		config:      config,
+		logger:      logger,
 	}
 }

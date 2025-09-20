@@ -7,42 +7,42 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewPricingDB(db *gorm.DB, logger *zap.Logger) repository.PricingRepository {
-	return &pricingDB{
+func NewPlanDB(db *gorm.DB, logger *zap.Logger) repository.PlanRepository {
+	return &planDB{
 		db:     db,
 		logger: logger,
 	}
 }
 
-type pricingDB struct {
+type planDB struct {
 	db     *gorm.DB
 	logger *zap.Logger
 }
 
-func (p pricingDB) ListWithFirstDiscount(serviceID uint) ([]*model.PricingLogic, error) {
-	var pricing []*model.PricingLogic
+func (p planDB) ListWithFirstDiscount(serviceID uint) ([]*model.Plan, error) {
+	var plan []*model.Plan
 
-	err := p.db.Where("id != ? AND service_id = ?", 1, serviceID).Order("price ASC").Find(&pricing).Error
+	err := p.db.Where("id != ? AND service_id = ?", 1, serviceID).Order("price ASC").Find(&plan).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return pricing, nil
+	return plan, nil
 }
 
-func (p pricingDB) ListWithOutFirstDiscount(serviceID uint) ([]*model.PricingLogic, error) {
-	var pricing []*model.PricingLogic
+func (p planDB) ListWithOutFirstDiscount(serviceID uint) ([]*model.Plan, error) {
+	var plan []*model.Plan
 
-	err := p.db.Where("id != ? AND service_id = ?", 4, serviceID).Order("price ASC").Find(&pricing).Error
+	err := p.db.Where("id != ? AND service_id = ?", 4, serviceID).Order("price ASC").Find(&plan).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return pricing, nil
+	return plan, nil
 }
 
-func (p pricingDB) Get(id int) (*model.PricingLogic, error) {
-	var price model.PricingLogic
+func (p planDB) Get(id int) (*model.Plan, error) {
+	var price model.Plan
 	err := p.db.Where("id = ?", id).Find(&price).Error
 	if err != nil {
 		return nil, err
@@ -51,8 +51,8 @@ func (p pricingDB) Get(id int) (*model.PricingLogic, error) {
 	return &price, nil
 }
 
-func (p pricingDB) FindByPrice(priceAmount uint) (*model.PricingLogic, error) {
-	var price model.PricingLogic
+func (p planDB) FindByPrice(priceAmount uint) (*model.Plan, error) {
+	var price model.Plan
 	err := p.db.Where("price = ?", priceAmount).Find(&price).Error
 	if err != nil {
 		return nil, err

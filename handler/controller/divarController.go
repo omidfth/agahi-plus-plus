@@ -30,12 +30,14 @@ func NewDivarController(
 }
 
 func (c divarController) EditPost(ctx *gin.Context) {
-	postToken := ctx.Param("post-token")
-	//srv := ctx.Param("service")
+	srv := ctx.Param("service")
 
-	if postToken == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "empty post token"})
+	post, err := c.divarService.EditPost(ctx, srv)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
+	ctx.JSON(http.StatusOK, gin.H{"status": "ok", "post": post})
 }

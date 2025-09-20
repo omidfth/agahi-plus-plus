@@ -6,6 +6,7 @@ import (
 	"errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"time"
 )
 
 func NewPostDb(db *gorm.DB, logger *zap.Logger) repository.PostDbRepo {
@@ -21,7 +22,7 @@ type postDb struct {
 }
 
 func (r postDb) Insert(post *model.Post) (*model.Post, error) {
-	err := r.db.FirstOrCreate(post, "token = ?", post.Token).Error
+	err := r.db.Where("token=?", post.Token).Save(post).Error
 
 	return post, err
 }
@@ -37,7 +38,7 @@ func (r postDb) Get(token string) (*model.Post, error) {
 	err := r.db.Where("token = ?", token).First(&post).Error
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, gorm.ErrRecordNotFound) && time.Now().Sub(post.UpdatedAt).Hours() > 1 {
 			return nil, nil
 		}
 		return nil, err

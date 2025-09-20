@@ -1,74 +1,76 @@
 package service
 
 import (
+	"agahi-plus-plus/internal/model"
+	"agahi-plus-plus/internal/postgres"
 	"agahi-plus-plus/internal/repository"
-	"encoding/json"
-	"fmt"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"strings"
 )
 
-var kamkardanchar = "این متن آگهی  بیشتر از ۱۰۰۰ کارکتر است. کمترین تعداد کارکتر ممکن رو حذف کن تا متن کمتر از ۱۰۰۰ کارکتر بشه. از حذف اطلاعات مهم آگهی خوداری کن."
-
 type PromptService interface {
-	CreateNewDescription(ctx *gin.Context, data, addons string) (string, error)
-	CreateAgahiNewDescription(ctx *gin.Context, input string) (string, error)
+	Generate(ctx *gin.Context, selectedImages []string, serviceName string) (*model.Post, int, error)
 }
 
 type promptService struct {
-	promptRepo repository.PromptRepository
-	logger     *zap.Logger
+	promptRepo  repository.PromptRepository
+	postService PostService
+	userService UserService
+	logger      *zap.Logger
 }
 
-func NewPromptService(promptRepo repository.PromptRepository, logger *zap.Logger) PromptService {
+func NewPromptService(
+	promptRepo repository.PromptRepository,
+	postService PostService,
+	userService UserService,
+	logger *zap.Logger,
+) PromptService {
 	return &promptService{
-		promptRepo: promptRepo,
-		logger:     logger,
+		promptRepo:  promptRepo,
+		postService: postService,
+		userService: userService,
+		logger:      logger,
 	}
 }
 
-func (s promptService) CreateNewDescription(ctx *gin.Context, data, addons string) (string, error) {
-	promptText := fmt.Sprintf("این %s دیتای یک آگهی املاک است و از نظر آگهی گذار به این دلایل %s خوب است. خیلی خیلی دلیل کوتاه و جذاب استخراج کن که نشان بده چرا این ملک خوب است. \nخروجی را به صورت خیلی کوتاه بده و ساده و تبلیغاتی بنویس. باز تاکید میکنم خیلی کوتاه باشه زیر ۲۰۰ کارکتر", data, addons)
-	res, err := s.promptRepo.Get(ctx, promptText)
+func (s promptService) Generate(ctx *gin.Context, selectedImages []string, serviceName string) (*model.Post, int, error) {
+	user, err := s.userService.GetUserWithContext(ctx)
 	if err != nil {
-		return "", err
+		return nil, 0, err
 	}
 
-	return res, nil
-}
-
-func (s promptService) CreateAgahiNewDescription(ctx *gin.Context, input string) (string, error) {
-	promptText := fmt.Sprintf(AgahiPrompt, input)
-	res, err := s.promptRepo.Get(ctx, promptText)
+	post, balance, err := s.postService.GetPostByUser(ctx, serviceName)
 	if err != nil {
-		return "", err
+		return post, balance, err
 	}
 
-	startIdx := strings.Index(res, "{")
-	endIdx := strings.LastIndex(res, "}")
-	if startIdx != -1 && endIdx != -1 && startIdx < endIdx {
-		jsonSubstring := res[startIdx : endIdx+1]
-		var optimized descRes
-		if err = json.Unmarshal([]byte(jsonSubstring), &optimized); err == nil {
-			formattedOutput := strings.ReplaceAll(optimized.NewDescription, "\\n", "\n")
-			return formattedOutput, nil
+	imagesLen := len(selectedImages)
+
+	if imagesLen == 0 {
+		return post, balance, nil
+	}
+
+	if imagesLen > balance {
+		return post, balance, errors.New("not enough token")
+	}
+	var outputs []string
+	for _, imageUrl := range selectedImages {
+		o, generateErr := s.promptRepo.Generate(ctx, imageUrl)
+		if generateErr != nil {
+			continue
 		}
+		outputs = append(outputs, o)
 	}
 
-	if len(res) < 1000 {
-		return res, nil
-	}
+	user.Balance -= imagesLen
 
-	promptText = fmt.Sprintf("این متن آگهی  بیشتر از ۱۰۰۰ کارکتر است. کمترین تعداد کارکتر ممکن رو حذف کن تا متن کمتر از ۱۰۰۰ کارکتر بشه. از حذف اطلاعات مهم آگهی خوداری کن. %s", res)
-	res, err = s.promptRepo.Get(ctx, promptText)
-	if err != nil {
-		return "", err
-	}
+	s.userService.Update(user)
 
-	return res, nil
-}
+	jb, _ := postgres.MakeJsonb(outputs)
+	post.NewImages = jb
 
-type descRes struct {
-	NewDescription string `json:"new_description"`
+	s.postService.UpdatePost(post)
+
+	return post, user.Balance, nil
 }

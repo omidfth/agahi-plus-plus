@@ -2,9 +2,9 @@ package repository
 
 import "agahi-plus-plus/internal/model"
 
-type PricingRepository interface {
-	ListWithFirstDiscount(serviceID uint) ([]*model.PricingLogic, error)
-	ListWithOutFirstDiscount(serviceID uint) ([]*model.PricingLogic, error)
-	Get(id int) (*model.PricingLogic, error)
-	FindByPrice(price uint) (*model.PricingLogic, error)
+type PlanRepository interface {
+	ListWithFirstDiscount(serviceID uint) ([]*model.Plan, error)
+	ListWithOutFirstDiscount(serviceID uint) ([]*model.Plan, error)
+	Get(id int) (*model.Plan, error)
+	FindByPrice(price uint) (*model.Plan, error)
 }
