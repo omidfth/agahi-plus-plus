@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -168,13 +169,31 @@ func (r promptApi) saveGeminiImage(result Response, outputDir string) (string, e
 			}
 
 			timestamp := time.Now().Format("20060102-150405")
-			uniqueFilename := fmt.Sprintf("generated_image_%s.png", timestamp)
+			uniqueFilenameTmp := fmt.Sprintf("generated_image_%s.png", timestamp)
+			uniqueFilename := fmt.Sprintf("generated_image_%s.jpg", timestamp)
+
+			outPathTmp := filepath.Join(outputDir, uniqueFilenameTmp)
+
+			if err := os.WriteFile(outPathTmp, data, 0644); err != nil {
+				return "", fmt.Errorf("error writing png image file: %v", err)
+			}
 
 			outPath := filepath.Join(outputDir, uniqueFilename)
 
-			if err := os.WriteFile(outPath, data, 0644); err != nil {
+			cmd := exec.Command("gm", "convert", outPathTmp, outPath)
+			if err := cmd.Run(); err != nil {
+				return "", fmt.Errorf("error converting image: %v", err)
+			}
+
+			if err = os.WriteFile(outPath, data, 0644); err != nil {
 				return "", fmt.Errorf("error writing image file: %v", err)
 			}
+
+			err = os.Remove(outPathTmp)
+			if err != nil {
+				return "", err
+			}
+
 			return outPath, nil
 		}
 	}
