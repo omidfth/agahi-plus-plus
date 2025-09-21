@@ -67,7 +67,7 @@ func (i divarApi) EditPost(endpoint, apikey, accessToken string, post *model.Pos
 
 	reqPayload := editPostRequest{
 		Description: post.Description,
-		ImagePaths:  post.GetImages(),
+		ImagePaths:  post.GetAllImages(),
 		Title:       post.Title,
 	}
 

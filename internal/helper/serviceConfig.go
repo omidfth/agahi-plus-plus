@@ -40,6 +40,7 @@ type divarApi struct {
 	GetPost      string `mapstructure:"get_post"`
 	EditPost     string `mapstructure:"edit_post"`
 	DeleteWidget string `mapstructure:"delete_widget"`
+	UploadImage  string `mapstructure:"upload_image"`
 	Addons       string `mapstructure:"addons"`
 }
 
