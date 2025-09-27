@@ -7,10 +7,12 @@ import (
 	"agahi-plus-plus/internal/response"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"io"
+	"log"
 	"net/http"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type divarApi struct {
@@ -65,9 +67,24 @@ func (i divarApi) EditPost(endpoint, apikey, accessToken string, post *model.Pos
 	url := getPostUrl(endpoint, post.Token)
 	method := "PUT"
 
+	images := post.GetAllImages()
+	uploadUrl, err := i.getUploadUrl(apikey)
+
+	if err != nil {
+		return err
+	}
+	var path []string
+	for _, image := range images {
+		p, uErr := i.uploadImage(uploadUrl, image)
+		if uErr != nil {
+			log.Printf("failed to upload image: %v", uErr)
+		}
+		path = append(path, p)
+	}
+
 	reqPayload := editPostRequest{
 		Description: post.Description,
-		ImagePaths:  post.GetAllImages(),
+		ImagePaths:  path,
 		Title:       post.Title,
 	}
 
@@ -104,4 +121,106 @@ func (i divarApi) EditPost(endpoint, apikey, accessToken string, post *model.Pos
 	fmt.Println(string(body))
 
 	return nil
+}
+
+type GetUploadUrl struct {
+	UploadUrl string `json:"upload_url"`
+}
+
+func (i divarApi) getUploadUrl(apiKey string) (string, error) {
+	url := i.config.Divar.Api.UploadImage
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	req.Header.Add("X-API-Key", apiKey)
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	fmt.Println(string(body))
+
+	var uploadUrl GetUploadUrl
+	err = json.Unmarshal(body, &uploadUrl)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	return uploadUrl.UploadUrl, nil
+}
+
+type UploadImagePath struct {
+	Path string `json:"path"`
+}
+
+func (i divarApi) uploadImage(uploadUrl string, fileUrl string) (string, error) {
+	url := uploadUrl
+	method := "POST"
+	data, _ := i.downloadImage(fileUrl)
+	payload := strings.NewReader(string(data))
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	req.Header.Add("Content-Type", "image/jpeg")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	fmt.Println(string(body))
+
+	var uploadImagePath UploadImagePath
+	err = json.Unmarshal(body, &uploadImagePath)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	return uploadImagePath.Path, nil
+}
+
+func (i divarApi) downloadImage(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("error downloading image: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("download failed with status: %d", resp.StatusCode)
+	}
+
+	imgData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading image data: %v", err)
+	}
+
+	return imgData, nil
 }
