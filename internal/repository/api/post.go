@@ -52,7 +52,7 @@ func (i postApi) Get(token string, serviceName string) (*model.Post, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := ioutil.ReadAll(resp.Body)
-		log.Println("method:getDivarPost err status_code:", resp.StatusCode, respBody)
+		log.Println("method:getDivarPost err status_code:", resp.StatusCode, string(respBody))
 		return nil, errors.New(resp.Status)
 	}
 
