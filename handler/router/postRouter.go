@@ -4,6 +4,7 @@ import (
 	"agahi-plus-plus/handler/controller"
 	middlewares "agahi-plus-plus/handler/middleware"
 	"agahi-plus-plus/internal/helper"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,5 +18,5 @@ func NewPostRouter(postController controller.PostController) Router {
 
 func (r postRouter) HandleRoutes(router *gin.Engine, config *helper.ServiceConfig) {
 	post := router.Group("v1").Group("post")
-	post.GET("", middlewares.Jwt(config), r.postController.Get)
+	post.GET(":service", middlewares.Jwt(config), r.postController.Get)
 }
