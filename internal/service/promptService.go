@@ -84,6 +84,8 @@ func (s promptService) Generate(ctx *gin.Context, selectedImages []string, servi
 
 	jb, _ := postgres.MakeJsonb(outputs)
 	post.NewImages = jb
+
+	selectedImages = append(selectedImages, lastSelectedImages...)
 	jb2, _ := postgres.MakeJsonb(selectedImages)
 	post.SelectedImages = jb2
 
