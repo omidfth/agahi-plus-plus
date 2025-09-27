@@ -135,7 +135,7 @@ func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
 
 	fmt.Printf("Saved %s\n", outFile)
 
-	siteOut := strings.Replace(outFile, "/imgs/", "https://cdnapp.agahi-plus.ir/", 1)
+	siteOut := strings.Replace(outFile, "imgs/", "https://cdnapp.agahi-plus.ir/", 1)
 	return siteOut, err
 }
 
