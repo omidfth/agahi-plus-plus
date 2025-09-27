@@ -7,10 +7,12 @@ import (
 	"agahi-plus-plus/internal/repository"
 	"encoding/json"
 	"errors"
-	"go.uber.org/zap"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type postApi struct {
@@ -49,7 +51,8 @@ func (i postApi) Get(token string, serviceName string) (*model.Post, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Println("method:getDivarPost err status_code:", resp.StatusCode)
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		log.Println("method:getDivarPost err status_code:", resp.StatusCode, respBody)
 		return nil, errors.New(resp.Status)
 	}
 
