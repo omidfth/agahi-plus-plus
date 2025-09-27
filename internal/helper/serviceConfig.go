@@ -135,6 +135,8 @@ func (c *ServiceConfig) GetDivarConfig(service string) divar {
 	switch service {
 	case constant.ApartmentServiceName:
 		config = c.Divar.Apartment
+	default:
+		config = c.Divar.Apartment
 	}
 
 	return config

@@ -7,6 +7,7 @@ import (
 	"agahi-plus-plus/internal/repository"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,7 +32,6 @@ func NewPostApi(
 }
 
 func (i postApi) Get(token string, serviceName string) (*model.Post, error) {
-	log.Println(i.config.Divar)
 	endPoint := getPostUrl(i.config.Divar.Api.GetPost, token)
 	log.Println("endpoint: ", endPoint)
 	method := "GET"
@@ -41,7 +41,7 @@ func (i postApi) Get(token string, serviceName string) (*model.Post, error) {
 	}
 
 	config := i.config.GetDivarConfig(serviceName)
-
+	fmt.Printf("CONFIG: %+v\n", config)
 	req.Header.Add("x-api-key", config.ApiKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
