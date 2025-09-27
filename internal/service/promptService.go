@@ -89,6 +89,8 @@ func (s promptService) Generate(ctx *gin.Context, selectedImages []string, servi
 	jb2, _ := postgres.MakeJsonb(selectedImages)
 	post.SelectedImages = jb2
 
+	post.IsConnected = false
+
 	s.postService.UpdatePost(post)
 
 	return post, user.Balance, nil
