@@ -7,15 +7,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type promptApi struct {
@@ -133,7 +135,8 @@ func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
 
 	fmt.Printf("Saved %s\n", outFile)
 
-	return outFile, err
+	siteOut := strings.Replace(outFile, "/imgs/", "https://cdnapp.agahi-plus.ir/", 1)
+	return siteOut, err
 }
 
 func (r promptApi) downloadImage(url string) ([]byte, error) {
