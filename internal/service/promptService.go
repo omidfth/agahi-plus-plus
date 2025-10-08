@@ -69,10 +69,8 @@ func (s promptService) Generate(ctx *gin.Context, selectedImages []string, servi
 		if s.contains(lastSelectedImages, imageUrl) {
 			continue
 		}
-		o, generateErr := s.promptRepo.Generate(ctx, imageUrl)
-		if generateErr != nil {
-			continue
-		}
+		o := s.generate(ctx, imageUrl)
+
 		outputs = append(outputs, o)
 	}
 
@@ -94,6 +92,15 @@ func (s promptService) Generate(ctx *gin.Context, selectedImages []string, servi
 	s.postService.UpdatePost(post)
 
 	return post, user.Balance, nil
+}
+
+func (s promptService) generate(ctx *gin.Context, imageUrl string) string {
+	o, err := s.promptRepo.Generate(ctx, imageUrl)
+	if err != nil {
+		return s.generate(ctx, imageUrl)
+	}
+
+	return o
 }
 
 func (s promptService) contains(sl []string, str string) bool {

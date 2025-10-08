@@ -117,20 +117,23 @@ func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		panic(fmt.Sprintf("Request failed with status %d: %s", resp.StatusCode, string(body)))
+		log.Println(fmt.Sprintf("Request failed with status %d: %s", resp.StatusCode, string(body)))
+		return "", fmt.Errorf("Request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
 	//respBytes, err := io.ReadAll(resp.Body)
 	//log.Println("BODY: ", string(respBytes))
 	var result Response
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		panic(fmt.Sprintf("Error decoding response: %v", err))
+		log.Println(fmt.Sprintf("Error decoding response: %v", err))
+		return "", err
 	}
 
 	log.Printf("RESULT: %+v", result)
 	outFile, err := r.saveGeminiImage(result, r.config.Prompt.OutputPath)
 	if err != nil {
-		panic(fmt.Sprintf("Error saving image: %v", err))
+		log.Println(fmt.Sprintf("Error saving image: %v", err))
+		return "", err
 	}
 
 	fmt.Printf("Saved %s\n", outFile)
