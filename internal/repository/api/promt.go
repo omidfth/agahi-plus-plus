@@ -64,15 +64,7 @@ type Candidate struct {
 	Content Content `json:"content"`
 }
 
-func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
-	imgData, err := r.downloadImage(imageUrl)
-	if err != nil {
-		panic(fmt.Sprintf("Error reading image file: %v", err))
-	}
-	imgB64 := base64.StdEncoding.EncodeToString(imgData)
-
-	log.Printf("\nMessage: %s\nRole: %s\nUrl: %s\n", r.config.Prompt.Message, r.config.Prompt.Role, r.config.Prompt.Url)
-
+func (r promptApi) sendRequest(imgB64 string) (*Response, error) {
 	payload := Payload{
 		Contents: []Content{
 			{
@@ -118,7 +110,7 @@ func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		log.Println(fmt.Sprintf("Request failed with status %d: %s", resp.StatusCode, string(body)))
-		return "", fmt.Errorf("Request failed with status %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("Request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
 	//respBytes, err := io.ReadAll(resp.Body)
@@ -126,11 +118,41 @@ func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
 	var result Response
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		log.Println(fmt.Sprintf("Error decoding response: %v", err))
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
+	imgData, err := r.downloadImage(imageUrl)
+	if err != nil {
+		panic(fmt.Sprintf("Error reading image file: %v", err))
+	}
+	imgB64 := base64.StdEncoding.EncodeToString(imgData)
+
+	log.Printf("\nMessage: %s\nRole: %s\nUrl: %s\n", r.config.Prompt.Message, r.config.Prompt.Role, r.config.Prompt.Url)
+	result, err := r.sendRequest(imgB64)
+	if err != nil {
+		log.Printf("Error sending request: %v", err)
 		return "", err
 	}
 
+	log.Printf("\nTRY2 Message: %s\nRole: %s\nUrl: %s\n", r.config.Prompt.Message, r.config.Prompt.Role, r.config.Prompt.Url)
+	parts := result.Candidates[0].Content.Parts
+
+	for _, p := range parts {
+		if p.InlineData != nil && p.InlineData.Data != "" {
+			result, err = r.sendRequest(p.InlineData.Data)
+			if err != nil {
+				log.Printf("Error sending request: %v", err)
+				return "", err
+			}
+		}
+	}
+
 	log.Printf("RESULT: %+v", result)
-	outFile, err := r.saveGeminiImage(result, r.config.Prompt.OutputPath)
+	outFile, err := r.saveGeminiImage(*result, r.config.Prompt.OutputPath)
 	if err != nil {
 		log.Println(fmt.Sprintf("Error saving image: %v", err))
 		return "", err
