@@ -138,19 +138,6 @@ func (r promptApi) Generate(ctx *gin.Context, imageUrl string) (string, error) {
 		return "", err
 	}
 
-	log.Printf("\nTRY2 Message: %s\nRole: %s\nUrl: %s\n", r.config.Prompt.Message, r.config.Prompt.Role, r.config.Prompt.Url)
-	parts := result.Candidates[0].Content.Parts
-
-	for _, p := range parts {
-		if p.InlineData != nil && p.InlineData.Data != "" {
-			result, err = r.sendRequest(p.InlineData.Data)
-			if err != nil {
-				log.Printf("Error sending request: %v", err)
-				return "", err
-			}
-		}
-	}
-
 	log.Printf("RESULT: %+v", result)
 	outFile, err := r.saveGeminiImage(*result, r.config.Prompt.OutputPath)
 	if err != nil {
